@@ -37,7 +37,10 @@ namespace hhru_api.Controllers
         public void PostUniversity(string identifier)
         {
             if (identifier == null)
+            {
+                Response.StatusCode = 400;
                 return;
+            }
 
             if (!getUniversityData(identifier))
                 Response.StatusCode = 400;
