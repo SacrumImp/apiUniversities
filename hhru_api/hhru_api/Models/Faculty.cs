@@ -1,8 +1,12 @@
 using System;
 
-class Faculty
+namespace hhru_api.Models
 {
-    public String id { get; set; }
+    public class Faculty
+    {
+        public String id { get; set; }
 
-    public String name { get; set; }
+        public String name { get; set; }
+    }
+
 }
