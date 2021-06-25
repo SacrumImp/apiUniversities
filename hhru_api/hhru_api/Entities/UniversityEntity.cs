@@ -1,7 +1,5 @@
 using System;
 
-using hhru_api.Models;
-
 namespace hhru_api.Entities
 {
     public class UniversityEntity
