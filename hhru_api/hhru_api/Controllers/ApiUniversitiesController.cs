@@ -7,7 +7,11 @@ using System.Net.Http.Headers;
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
+
+using System.Threading.Tasks;
+
+using hhru_api.Models;
+using hhru_api.Entities;
 
 namespace hhru_api.Controllers
 {
@@ -17,6 +21,7 @@ namespace hhru_api.Controllers
     {
 
         private readonly ILogger<ApiUniversitiesController> _logger;
+        private SqlDbContext _context;
 
         private static ProductInfoHeaderValue productValue = new ProductInfoHeaderValue("UniversityAPI", "1.0");
 
@@ -28,13 +33,14 @@ namespace hhru_api.Controllers
         private List<Faculty> faculties;
 
 
-        public ApiUniversitiesController(ILogger<ApiUniversitiesController> logger)
+        public ApiUniversitiesController(ILogger<ApiUniversitiesController> logger, SqlDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]
-        public void PostUniversity(string identifier)
+        public async Task PostUniversity(string identifier)
         {
             if (identifier == null)
             {
@@ -46,6 +52,11 @@ namespace hhru_api.Controllers
                 Response.StatusCode = 400;
             else
                 Response.StatusCode = 200;
+            
+            if (university == null || faculties == null)
+                Response.StatusCode = 400;
+            else 
+                await saveUniversityData();
 
             return;
         }
@@ -84,6 +95,27 @@ namespace hhru_api.Controllers
             }
 
             return true;
+        }
+
+        private async Task saveUniversityData()
+        {
+            AreaEntity areaEntity = new AreaEntity(Int32.Parse(university.area.id), university.area.name);
+            if (_context.Area.Find(areaEntity.id) == null)
+                _context.Area.Add(areaEntity);
+
+            UniversityEntity universityEntity = new UniversityEntity(Int32.Parse(university.id), university.acronym, university.text, university.synonyms, Int32.Parse(university.area.id));
+            if (_context.Universities.Find(universityEntity.id) == null)
+                _context.Universities.Add(universityEntity);
+
+            FacultyEntity facultyEntity;
+            foreach (Faculty faculty in faculties)
+            {
+                facultyEntity = new FacultyEntity(Int32.Parse(faculty.id), Int32.Parse(university.id), faculty.name);
+                if (_context.Faculties.Find(facultyEntity.id) == null)
+                    _context.Faculties.Add(facultyEntity);
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
